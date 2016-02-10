@@ -85,12 +85,85 @@ def dataSplitAndPack(data):
     
     return (dataHigh, dataLow)
 
+#class command(object):
+#    	
+#        def __init__(self):
+#            self.__dict__['_odict'] = odict()
+#
+#	def createPayload(self):
+#            self.payload = ''
+#            
+#            orderedAttributes = [attr for attr in self._odict.items() if attr[0] != 'payload']
+#
+#            for attribute in orderedAttributes:
+#                attr, value = attribute
+#                    
+#                if (isinstance(value, sCommandHeader)):
+#                    for sub_attribute in value._odict.items():
+#                        sub_attr, sub_value = sub_attribute
+#                        print sub_attr, repr(sub_value)
+#                        self.payload += sub_value
+#                else:
+#
+#                    print attr, repr(value)
+#                    self.payload += value
+#
+#            return self.payload
+#
+#	def packet2BytePacker(self, data):
+#		packer = struct.Struct("!H")
+#
+#		return packer.pack(data)
+#
+#        def __getattr__(self, value):
+#            return self.__dict__['_odict'][value]
+#        def __setattr__(self, key, value):
+#            self.__dict__['_odict'][key] = value
+#
+##Command Header
+#class sCommandHeader(command):
+#	def __init__(self, commandID, seqNum):
+#		self.__dict__['_odict'] = odict()
+#                self.CommandType = self.packet2BytePacker(commandID)
+#		self.SequenceNumber = self.packet2BytePacker(seqNum)
+#
+## WRITE_REG
+#class sWriteRegReq(command):
+#	def __init__(self, commandID, seqNum, BoardReg, RegAddr, RegDataHigh, RegDataLow):
+#		self.__dict__['_odict'] = odict()
+#		self.Header       = sCommandHeader(commandID, seqNum)
+#		self.BoardReg    = self.packet2BytePacker(BoardReg)
+#		self.RegAddress  = self.packet2BytePacker(RegAddr)
+#		self.RegDataHigh = RegDataHigh
+#		self.RegDataLow  = RegDataLow
+#
+## template for using odict module
+#class AnotherOne(command):
+#    def __init__(self, commandID, seqNum, BoardReg, RegAddr, RegDataHigh, RegDataLow):
+#        self.__dict__['_odict'] = odict()
+#        self.commID = commandID
+#        self.seqNum = seqNum
+#        self.BoardReg = BoardReg
+#        self.RegAddress = RegAddr
+#        self.RegDataHigh = RegDataHigh
+#        self.RegDataLow = RegDataLow
+#
+#    def __getattr__(self, value):
+#        return self.__dict__['_odict'][value]
+#    def __setattr__(self, key, value):
+#        self.__dict__['_odict'][key] = value
+
+# command packet structure
 class command(object):
     	
         def __init__(self):
             self.__dict__['_odict'] = odict()
-
+	
 	def createPayload(self):
+	    '''
+	    Create payload for sending via UDP Packet to SKARAB
+	    '''
+
             self.payload = ''
             
             orderedAttributes = [attr for attr in self._odict.items() if attr[0] != 'payload']
@@ -115,17 +188,24 @@ class command(object):
 
 		return packer.pack(data)
 
+	def packet2ByteUnpacker(self, data):
+		unpacker = struct.Struct("!H")
+
+		return unpacker.unpack(data)
+
         def __getattr__(self, value):
             return self.__dict__['_odict'][value]
         def __setattr__(self, key, value):
             self.__dict__['_odict'][key] = value
+
+   
 
 #Command Header
 class sCommandHeader(command):
 	def __init__(self, commandID, seqNum):
 		self.__dict__['_odict'] = odict()
                 self.CommandType = self.packet2BytePacker(commandID)
-		self.SequenceNumber = self.packet2BytePacker(seqNum)
+                self.SequenceNumber = self.packet2BytePacker(seqNum)
 
 # WRITE_REG
 class sWriteRegReq(command):
@@ -137,20 +217,14 @@ class sWriteRegReq(command):
 		self.RegDataHigh = RegDataHigh
 		self.RegDataLow  = RegDataLow
 
-# template for using odict module
-class AnotherOne(command):
-    def __init__(self, commandID, seqNum, BoardReg, RegAddr, RegDataHigh, RegDataLow):
-        self.__dict__['_odict'] = odict()
-        self.commID = commandID
-        self.seqNum = seqNum
-        self.BoardReg = BoardReg
-        self.RegAddress = RegAddr
-        self.RegDataHigh = RegDataHigh
-        self.RegDataLow = RegDataLow
-
-    def __getattr__(self, value):
-        return self.__dict__['_odict'][value]
-    def __setattr__(self, key, value):
-        self.__dict__['_odict'][key] = value
+class sWriteRegResp(command):
+	def __init__(self, commandID, seqNum, BoardReg, RegAddr, RegDataHigh, RegDataLow, Padding):
+		self.__dict__['_odict'] = odict()
+		self.Header       = sCommandHeader(commandID, seqNum)
+		self.BoardReg    = BoardReg
+		self.RegAddress  = RegAddr
+		self.RegDataHigh = RegDataHigh
+		self.RegDataLow  = RegDataLow
+		self.Padding = Padding
 
 writeObj = sWriteRegReq(1,2,3, 0xab, *(dataSplitAndPack(0xABCDEEFF)))

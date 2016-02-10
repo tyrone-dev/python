@@ -84,13 +84,13 @@ class Employee:
         self.name = name
         self.salary = salary
         Employee.empCount += 1
-
+        #test = "Tempted" # not good
     # other methods are decalred as normal python functions; except that 'self' is always the first argument of a method
     # python adds the self arg to the list automatically when calling the method
 
     def displayCount(self):
         logger.info("Total Employees %d" %Employee.empCount)
-
+        #logger.info(test)
     def displayEmployee(self):
         logger.info('Name: {}, Salary: {}'.format(self.name, self.salary))
     '''
